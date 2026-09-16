@@ -1,0 +1,444 @@
+@import "tailwindcss";
+
+/* ─── Fonts ─────────────────────────────────────────────────── */
+:root {
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* ─── Color System ─────────────────────────────────────────── */
+  --bg-base:    #050506;
+  --bg-surface: #0a0a0c;
+  --bg-card:    #0e0e12;
+
+  --blue:   #2447FF;
+  --yellow: #FFE500;
+  --red:    #FF3030;
+  --muted:  #66666D;
+  --white:  #F5F5F2;
+
+  --blue-glow:   rgba(36,71,255,0.30);
+  --yellow-glow: rgba(255,229,0,0.30);
+  --red-glow:    rgba(255,48,48,0.30);
+}
+
+/* ─── Reset & Base ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-width: 320px;
+  background: var(--bg-base);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+/* ─── Background Grid Texture ───────────────────────────────── */
+.bg-grid {
+  background-color: var(--bg-base);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(49,92,255,0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(139,92,246,0.08) 0%, transparent 60%),
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: auto, auto, 48px 48px, 48px 48px;
+  background-position: center;
+}
+
+/* ─── Noise Overlay ─────────────────────────────────────────── */
+.noise::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  z-index: 9999;
+}
+
+/* ─── Glitch flicker on crisis ──────────────────────────────── */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+  75% { opacity: 0.92; }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 1; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+@keyframes energy-flow {
+  0% { stroke-dashoffset: 200; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes particle-travel {
+  0% { offset-distance: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50% { box-shadow: 0 0 0 6px transparent; }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes data-tick {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes crisis-flash {
+  0%, 100% { background-color: transparent; }
+  25% { background-color: rgba(255,60,172,0.04); }
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes counter-rotate {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+/* ─── Utility Classes ───────────────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-mono    { font-family: var(--font-mono); }
+
+.text-blue   { color: var(--blue); }
+.text-pink   { color: var(--pink); }
+.text-lime   { color: var(--lime); }
+.text-orange { color: var(--orange); }
+.text-violet { color: var(--violet); }
+.text-off-white { color: var(--white); }
+
+.glow-blue   { text-shadow: 0 0 20px var(--blue-glow),   0 0 40px var(--blue-glow); }
+.glow-pink   { text-shadow: 0 0 20px var(--pink-glow),   0 0 40px var(--pink-glow); }
+.glow-lime   { text-shadow: 0 0 20px var(--lime-glow),   0 0 40px var(--lime-glow); }
+.glow-orange { text-shadow: 0 0 20px var(--orange-glow), 0 0 40px var(--orange-glow); }
+.glow-violet { text-shadow: 0 0 20px var(--violet-glow), 0 0 40px var(--violet-glow); }
+
+.border-glow-blue   { box-shadow: 0 0 0 1px var(--blue),   0 0 20px var(--blue-glow); }
+.border-glow-pink   { box-shadow: 0 0 0 1px var(--pink),   0 0 20px var(--pink-glow); }
+.border-glow-lime   { box-shadow: 0 0 0 1px var(--lime),   0 0 20px var(--lime-glow); }
+.border-glow-orange { box-shadow: 0 0 0 1px var(--orange), 0 0 20px var(--orange-glow); }
+.border-glow-violet { box-shadow: 0 0 0 1px var(--violet), 0 0 20px var(--violet-glow); }
+
+.animate-rise-in    { animation: rise-in 0.5s ease-out forwards; }
+.animate-slide-right { animation: slide-right 0.4s ease-out forwards; }
+.animate-data-tick  { animation: data-tick 2s ease-in-out infinite; }
+.animate-rotate-slow { animation: rotate-slow 12s linear infinite; }
+.animate-counter-rotate { animation: counter-rotate 12s linear infinite; }
+.animate-crisis-flash { animation: crisis-flash 0.5s ease-in-out infinite; }
+.animate-flicker { animation: flicker 0.1s linear infinite; }
+
+/* ─── Panel / Card System ───────────────────────────────────── */
+.panel {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* ─── Topology SVG Flows ────────────────────────────────────── */
+.flow-line {
+  stroke-dasharray: 8 6;
+  animation: energy-flow 2s linear infinite;
+}
+
+.flow-line-fast {
+  stroke-dasharray: 6 4;
+  animation: energy-flow 1.2s linear infinite;
+}
+
+/* ─── Node ring pulse ───────────────────────────────────────── */
+.node-ring-pulse::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 1px solid currentColor;
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+/* ─── Scan Line FX ──────────────────────────────────────────── */
+.scanline {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(49,92,255,0.3), transparent);
+  animation: scan-line 6s linear infinite;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ─── Crisis overlay ────────────────────────────────────────── */
+.crisis-vignette {
+  box-shadow: inset 0 0 160px rgba(255,42,42,0.22);
+  transition: box-shadow 0.6s ease;
+}
+
+/* ─── Chart overrides ────────────────────────────────────────── */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+
+/* ─── Native Visible Cursor ─────────────────────────────────── */
+html, body {
+  cursor: auto !important;
+}
+button, a, [role="button"], .cursor-pointer {
+  cursor: pointer !important;
+}
+
+
+/* ─── Node breathing animation ───────────────────────────────── */
+@keyframes nodeBreathYellow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,234,0,0);   }
+  50%       { box-shadow: 0 0 14px 4px rgba(255,234,0,0.28); }
+}
+@keyframes nodeBreathBlue {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(20,52,251,0);   }
+  50%       { box-shadow: 0 0 14px 4px rgba(20,52,251,0.32); }
+}
+@keyframes nodeBreathRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,42,42,0);   }
+  50%       { box-shadow: 0 0 14px 4px rgba(255,42,42,0.32); }
+}
+@keyframes nodeBreathWhite {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0);  }
+  50%       { box-shadow: 0 0 14px 4px rgba(255,255,255,0.18); }
+}
+.node-breath-yellow { animation: nodeBreathYellow 3.2s ease-in-out infinite; }
+.node-breath-blue   { animation: nodeBreathBlue   3.6s ease-in-out infinite 0.4s; }
+.node-breath-red    { animation: nodeBreathRed    3.4s ease-in-out infinite 0.8s; }
+.node-breath-white  { animation: nodeBreathWhite  2.8s ease-in-out infinite 0.2s; }
+
+/* ─── Ambient log entry fade-in ─────────────────────────────── */
+@keyframes logEntry {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.log-entry { animation: logEntry 0.35s ease-out forwards; }
+
+/* ─── Hero kW glow pulse ─────────────────────────────────────── */
+@keyframes heroGlowPulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1.0; }
+}
+.hero-radial {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: heroGlowPulse 4s ease-in-out infinite;
+}
+
+/* ─── Topology connection SVG lines ─────────────────────────── */
+@keyframes dashFlow {
+  to { stroke-dashoffset: -16; }
+}
+.topo-line-active {
+  animation: dashFlow 0.8s linear infinite;
+  stroke-dasharray: 8 6;
+}
+.topo-line-idle {
+  stroke-dasharray: 4 8;
+}
+
+/* ─── Instrument cell top accent ─────────────────────────────── */
+.instrument-cell {
+  position: relative;
+}
+.instrument-cell::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+}
+
+/* ─── Log section ambient scan ──────────────────────────────── */
+@keyframes logScan {
+  0%   { top: 0%;   opacity: 0; }
+  5%   { opacity: 0.6; }
+  95%  { opacity: 0.3; }
+  100% { top: 100%; opacity: 0; }
+}
+.log-scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,234,0,0.18), transparent);
+  pointer-events: none;
+  animation: logScan 6s linear infinite;
+}
+
+/* ─── Button active ripple ───────────────────────────────────── */
+@keyframes btnRipple {
+  from { transform: scale(0.94); opacity: 0.4; }
+  to   { transform: scale(1);    opacity: 0; }
+}
+button:active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255,255,255,0.08);
+  animation: btnRipple 0.4s ease-out forwards;
+  pointer-events: none;
+}
+button { position: relative; overflow: hidden; }
+
+/* ─── Traveling Energy Pulses in Topology ────────────────────── */
+@keyframes pulseSolarDown {
+  0%   { cy: 0%;   r: 2px; opacity: 0; }
+  20%  { opacity: 1; r: 3px; }
+  80%  { opacity: 1; r: 3px; }
+  100% { cy: 50%;  r: 1.5px; opacity: 0; }
+}
+@keyframes pulseGridToEv {
+  0%   { cx: 50%;  r: 2px; opacity: 0; }
+  20%  { opacity: 1; r: 3px; }
+  80%  { opacity: 1; r: 3px; }
+  100% { cx: 104%; r: 1.5px; opacity: 0; }
+}
+@keyframes pulseGridToBess {
+  0%   { cy: 50%;  r: 2px; opacity: 0; }
+  20%  { opacity: 1; r: 3px; }
+  80%  { opacity: 1; r: 3px; }
+  100% { cy: 104%; r: 1.5px; opacity: 0; }
+}
+@keyframes pulseP2PDiag {
+  0%   { cx: 50%;  cy: 100%; r: 3px; opacity: 0; }
+  20%  { opacity: 1; r: 4px; }
+  80%  { opacity: 1; r: 4px; }
+  100% { cx: 100%; cy: 50%;  r: 2px; opacity: 0; }
+}
+
+.energy-dot-solar {
+  animation: pulseSolarDown 1.6s ease-in-out infinite;
+}
+.energy-dot-ev {
+  animation: pulseGridToEv 1.8s ease-in-out infinite 0.3s;
+}
+.energy-dot-bess {
+  animation: pulseGridToBess 1.7s ease-in-out infinite 0.7s;
+}
+.energy-dot-p2p {
+  animation: pulseP2PDiag 0.75s linear infinite;
+}
+
+/* ─── Telemetry Hover Glows ───────────────────────────────────── */
+.glow-solar {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glow-solar:hover, .glow-solar.active-glow {
+  border-color: #FFE500 !important;
+  background-color: rgba(255, 229, 0, 0.12) !important;
+  box-shadow: 0 0 28px rgba(255, 229, 0, 0.35), inset 0 0 18px rgba(255, 229, 0, 0.12);
+}
+
+.glow-ev {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glow-ev:hover, .glow-ev.active-glow {
+  border-color: #2447FF !important;
+  background-color: rgba(36, 71, 255, 0.15) !important;
+  box-shadow: 0 0 28px rgba(36, 71, 255, 0.45), inset 0 0 18px rgba(36, 71, 255, 0.15);
+}
+
+.glow-battery {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glow-battery:hover, .glow-battery.active-glow {
+  border-color: #FF3030 !important;
+  background-color: rgba(255, 48, 48, 0.15) !important;
+  box-shadow: 0 0 28px rgba(255, 48, 48, 0.45), inset 0 0 18px rgba(255, 48, 48, 0.15);
+}
+
+.glow-factory {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glow-factory:hover {
+  border-color: rgba(255, 255, 255, 0.7) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.25), inset 0 0 14px rgba(255, 255, 255, 0.08);
+}
+
+/* ─── Hero Typography Backdrop Chroma ─────────────────────────── */
+.hero-chroma-backdrop {
+  position: relative;
+  background: linear-gradient(135deg, rgba(20, 52, 251, 0.32) 0%, rgba(36, 71, 255, 0.18) 45%, rgba(255, 42, 42, 0.12) 85%, transparent 100%);
+  border-left: 4px solid #2447FF;
+  border-top: 1px solid rgba(36, 71, 255, 0.3);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 45px rgba(20, 52, 251, 0.3), inset 0 0 25px rgba(36, 71, 255, 0.1);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hero-chroma-backdrop.crisis-mode {
+  background: linear-gradient(135deg, rgba(255, 42, 42, 0.4) 0%, rgba(255, 48, 48, 0.22) 50%, rgba(20, 52, 251, 0.15) 85%, transparent 100%);
+  border-left-color: #FF3030;
+  border-top-color: rgba(255, 48, 48, 0.4);
+  box-shadow: 0 0 50px rgba(255, 48, 48, 0.4), inset 0 0 30px rgba(255, 48, 48, 0.15);
+}
+
+/* Blueprint subtle grid overlay for topology */
+.bg-blueprint-grid {
+  background-image:
+    linear-gradient(rgba(36, 71, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(36, 71, 255, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Terminal subtle scanline grid overlay */
+.bg-terminal-grid {
+  background-image:
+    linear-gradient(rgba(0, 255, 157, 0.04) 1px, transparent 1px);
+  background-size: 100% 4px;
+}
