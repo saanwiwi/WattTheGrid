@@ -12,6 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import __version__
 from app.api.auth import router as auth_router
 from app.api.grid import router as grid_router
+from app.api.forecast import router as forecast_router
+from app.services.forecast import forecaster
 from app.api.intelligence import router as intel_router
 from app.config import get_settings
 from app.database import Base, SessionLocal, engine as db_engine
@@ -28,6 +30,7 @@ async def twin_loop() -> None:
     n = 0
     while True:
         snap = engine.step()
+        snap["forecast"] = forecaster.observe(snap)
         await hub.broadcast(json.loads(json.dumps(snap, default=str)))
         publish_twin(snap)
         n += 1
@@ -63,7 +66,6 @@ async def twin_loop() -> None:
                     )
                 await db.commit()
         await asyncio.sleep(settings.tick_interval_seconds)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -103,7 +105,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(grid_router, prefix="/api/v1")
 app.include_router(intel_router, prefix="/api/v1")
-
+app.include_router(forecast_router, prefix="/api/v1")
 
 @app.get("/health")
 async def health():

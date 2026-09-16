@@ -145,3 +145,221 @@ class ForecastService:
 
 
 forecast_service = ForecastService()
+
+
+# ---------------------------------------------------------------------------
+# Lightweight trend-based forecaster used by app/api/forecast.py
+# (separate from ForecastService above, which does the ML-based prediction)
+# ---------------------------------------------------------------------------
+
+import math
+import time as _time
+from collections import deque
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Deque, Optional
+
+TRANSFORMER_RATING_KW = 500.0
+THERMAL_CEILING_KW = 425.0
+FORECAST_CEILING_KW = 440.0
+HORIZON_MINUTES = 15
+ELEVATED_FRACTION = 0.80
+CRITICAL_FRACTION = 1.00
+BESS_SPINUP_MINUTES = 2.0
+BESS_MIN_SOC_PCT = 20.0
+EWMA_ALPHA = 0.25
+MOMENTUM_DECAY_MINUTES = 12.0
+WARMUP_TICKS = 3
+
+
+class RiskLevel(str, Enum):
+    LOW = "LOW"
+    ELEVATED = "ELEVATED"
+    CRITICAL = "CRITICAL"
+
+
+class _Channel:
+    __slots__ = ("level", "slope", "_last_val", "_last_ts", "alpha", "clamp")
+
+    def __init__(self, alpha: float = EWMA_ALPHA, clamp: float = 400.0) -> None:
+        self.level = None
+        self.slope = 0.0
+        self._last_val = None
+        self._last_ts = None
+        self.alpha = alpha
+        self.clamp = clamp
+
+    def update(self, value: float, ts: float) -> None:
+        if self._last_val is not None and self._last_ts is not None:
+            dt_min = max((ts - self._last_ts) / 60.0, 1e-6)
+            raw = (value - self._last_val) / dt_min
+            raw = max(-self.clamp, min(self.clamp, raw))
+            self.slope = self.alpha * raw + (1 - self.alpha) * self.slope
+        self.level = (value if self.level is None
+                      else self.alpha * value + (1 - self.alpha) * self.level)
+        self._last_val = value
+        self._last_ts = ts
+
+    def at(self, minutes_ahead: float) -> float:
+        if self.level is None:
+            return 0.0
+        decay = math.exp(-minutes_ahead / MOMENTUM_DECAY_MINUTES)
+        return self.level + self.slope * minutes_ahead * decay
+
+
+@dataclass
+class DispatchState:
+    armed: bool = False
+    dispatching: bool = False
+    eta_minutes: Optional[float] = None
+    reason: str = "idle"
+    v2g_enabled: bool = True
+    log: Deque[dict] = field(default_factory=lambda: deque(maxlen=50))
+
+
+class Forecaster:
+    def __init__(self) -> None:
+        self.bus = _Channel()
+        self.solar = _Channel(clamp=300.0)
+        self.ev = _Channel(clamp=300.0)
+        self.ticks = 0
+        self.dispatch = DispatchState()
+        self.history: Deque[dict] = deque(maxlen=900)
+        self._latest: dict = {}
+
+    @staticmethod
+    def _extract(snap: dict):
+        bus = float(snap.get("main_bus", {}).get("load_kw", 0.0) or 0.0)
+        assets = snap.get("assets", {}) or {}
+        solar = float(assets.get("solar_kw", 0.0) or 0.0)
+        ev = float(assets.get("ev_fleet_kw", 0.0) or 0.0)
+        soc = float(assets.get("battery_soc_pct", 0.0) or 0.0)
+        return bus, solar, ev, soc
+
+    def observe(self, snap: dict) -> dict:
+        ts = _time.time()
+        bus, solar, ev, soc = self._extract(snap)
+        self.bus.update(bus, ts)
+        self.solar.update(solar, ts)
+        self.ev.update(ev, ts)
+        self.ticks += 1
+        block = self._project(bus, solar, ev, soc)
+        self._latest = block
+        self.history.append({"ts": ts, "load_kw": round(bus, 1),
+                             "peak_kw": block["peak_load_kw"]})
+        return block
+
+    def _project(self, bus, solar, ev, soc) -> dict:
+        warming = self.ticks < WARMUP_TICKS
+        smoothed = self.bus.level if self.bus.level is not None else bus
+        peak = smoothed
+        peak_at = 0
+        breach_eta = None
+
+        if not warming:
+            for m in range(1, HORIZON_MINUTES + 1):
+                solar_m = max(0.0, self.solar.at(m))
+                ev_m = max(0.0, self.ev.at(m))
+                momentum = self.bus.slope * m * math.exp(-m / MOMENTUM_DECAY_MINUTES)
+                generation_loss = solar - solar_m
+                ev_delta = ev_m - ev
+                projected = smoothed + momentum + generation_loss + ev_delta
+                projected = max(0.0, min(projected, TRANSFORMER_RATING_KW * 1.4))
+                if projected > peak:
+                    peak, peak_at = projected, m
+                if breach_eta is None and projected >= THERMAL_CEILING_KW:
+                    breach_eta = float(m)
+
+        ratio = peak / THERMAL_CEILING_KW
+        if warming:
+            risk = RiskLevel.LOW
+        elif ratio >= CRITICAL_FRACTION:
+            risk = RiskLevel.CRITICAL
+        elif ratio >= ELEVATED_FRACTION:
+            risk = RiskLevel.ELEVATED
+        else:
+            risk = RiskLevel.LOW
+
+        self._evaluate_dispatch(peak, risk, breach_eta, soc)
+
+        return {
+            "horizon_minutes": HORIZON_MINUTES,
+            "warming_up": warming,
+            "peak_load_kw": round(peak, 1),
+            "peak_at_minute": peak_at,
+            "sol_forecast_kw": round(max(0.0, self.solar.at(HORIZON_MINUTES)), 1),
+            "ev_surge_proj_kw": round(max(0.0, self.ev.at(HORIZON_MINUTES)), 1),
+            "trajectory_kw_per_min": round(self.bus.slope, 2),
+            "headroom_kw": round(THERMAL_CEILING_KW - peak, 1),
+            "forecast_ceiling_kw": FORECAST_CEILING_KW,
+            "rating_kw": TRANSFORMER_RATING_KW,
+            "risk": {
+                "level": risk.value,
+                "score": round(ratio, 3),
+                "thermal_ceiling_kw": THERMAL_CEILING_KW,
+                "breach_eta_minutes": breach_eta,
+            },
+            "dispatch": {
+                "armed": self.dispatch.armed,
+                "dispatching": self.dispatch.dispatching,
+                "eta_minutes": self.dispatch.eta_minutes,
+                "reason": self.dispatch.reason,
+                "v2g_enabled": self.dispatch.v2g_enabled,
+            },
+        }
+
+    def _evaluate_dispatch(self, peak, risk, breach_eta, soc) -> None:
+        d = self.dispatch
+        if d.dispatching:
+            d.eta_minutes = 0.0
+            d.reason = "discharging"
+            return
+        if breach_eta is not None:
+            eta = max(0.0, breach_eta - BESS_SPINUP_MINUTES)
+            d.armed = True
+            d.eta_minutes = round(eta, 1)
+            d.reason = f"projected breach of {THERMAL_CEILING_KW:.0f} kW ceiling"
+            if eta <= 0.0 and soc > BESS_MIN_SOC_PCT:
+                self.trigger_discharge("auto", "ceiling breach imminent")
+            return
+        if risk is RiskLevel.ELEVATED:
+            slack = THERMAL_CEILING_KW - peak
+            velocity = max(self.bus.slope, 0.5)
+            est = min(HORIZON_MINUTES, slack / velocity)
+            d.armed = True
+            d.eta_minutes = round(max(BESS_SPINUP_MINUTES, est), 1)
+            d.reason = "elevated load — asset staged"
+            return
+        d.armed = False
+        d.eta_minutes = None
+        d.reason = "idle"
+
+    def _log(self, action: str, detail: str) -> dict:
+        entry = {"ts": datetime.now(timezone.utc).isoformat(),
+                 "action": action, "detail": detail}
+        self.dispatch.log.appendleft(entry)
+        return entry
+
+    def trigger_discharge(self, origin: str, detail: str) -> dict:
+        self.dispatch.dispatching = True
+        self.dispatch.armed = True
+        self.dispatch.eta_minutes = 0.0
+        return self._log("pre_discharge", f"[{origin}] {detail}")
+
+    def clear_discharge(self) -> dict:
+        self.dispatch.dispatching = False
+        self.dispatch.eta_minutes = None
+        self.dispatch.reason = "idle"
+        return self._log("pre_discharge_clear", "discharge released")
+
+    def toggle_v2g(self) -> dict:
+        self.dispatch.v2g_enabled = not self.dispatch.v2g_enabled
+        mode = "enabled" if self.dispatch.v2g_enabled else "disabled"
+        return self._log("recalibrate_v2g", f"V2G bidirectional flow {mode}")
+
+    @property
+    def latest(self) -> dict:
+        return self._latest
+
+
+forecaster = Forecaster()
