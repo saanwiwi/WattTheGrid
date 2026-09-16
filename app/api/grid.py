@@ -50,6 +50,9 @@ async def events(limit: int = Query(50, le=200)):
 @router.post("/crisis/simulate", response_model=GridSnapshot)
 async def simulate_crisis(body: CrisisRequest, db: AsyncSession = Depends(get_db)):
     engine.apply_crisis(body.scenario, body.intensity, body.autonomous)
+    snap = engine.step()
+    # IMMEDIATELY broadcast to WebSocket hub to eliminate race condition
+    await hub.broadcast(json.loads(json.dumps(snap, default=str)))
     db.add(
         GridEvent(
             ts=datetime.now(timezone.utc),
@@ -60,12 +63,15 @@ async def simulate_crisis(body: CrisisRequest, db: AsyncSession = Depends(get_db
         )
     )
     await db.commit()
-    return GridSnapshot.model_validate(engine.step())
+    return GridSnapshot.model_validate(snap)
 
 
 @router.post("/crisis/reset", response_model=GridSnapshot)
 async def reset_baseline(db: AsyncSession = Depends(get_db)):
     engine.reset()
+    snap = engine.step()
+    # IMMEDIATELY broadcast to WebSocket hub to eliminate race condition
+    await hub.broadcast(json.loads(json.dumps(snap, default=str)))
     db.add(
         GridEvent(
             ts=datetime.now(timezone.utc),
@@ -76,7 +82,7 @@ async def reset_baseline(db: AsyncSession = Depends(get_db)):
         )
     )
     await db.commit()
-    return GridSnapshot.model_validate(engine.step())
+    return GridSnapshot.model_validate(snap)
 
 
 @router.post("/iot/ingest")

@@ -15,7 +15,7 @@ BASELINE: dict[str, Any] = {
     "sys_id": "WTG-09",
     "version": "AUTONOMOUS V4",
     "bus": "TX-400 MAIN BUS",
-    "status": "NOMINAL",
+    "status": "IDLE",
     "headline": "WHAT THE GRID",
     "copy": (
         "THE GRID IS ALIVE. MODELING COMPOUND MICROGRID STRESSES IN REAL-TIME. "
@@ -61,6 +61,7 @@ class GridEngine:
         self.tick = 0
         self.crisis: CrisisKind = None
         self.crisis_intensity = 1.0
+        self.crisis_tick = 0
         self.autonomous = True
         self._rng = random.Random(400)
         self.state = deepcopy(BASELINE)
@@ -110,8 +111,11 @@ class GridEngine:
     def reset(self) -> None:
         self.crisis = None
         self.crisis_intensity = 1.0
+        self.crisis_tick = 0
         self.state = deepcopy(BASELINE)
-        self.log("RESET", "BASELINE RESTORED — FIELD_STATE NOMINAL", "info")
+        self.state["status"] = "IDLE"
+        self.state["crisis"] = None
+        self.log("RESET", "OPERATOR COMMAND: BASELINE RESTORED // SYSTEM NOMINAL", "info")
         self.advisor = {
             "mode": "STANDBY",
             "recommendation": "Maintain nominal P2P balancing. No V2G required.",
@@ -122,13 +126,10 @@ class GridEngine:
         self.crisis = scenario
         self.crisis_intensity = intensity
         self.autonomous = autonomous
-        labels = {
-            "ev_surge": "EV RAPID-CHARGE SURGE",
-            "cloud_cover": "SUDDEN CLOUD COVER — PV DROP",
-            "blackout": "MAIN GRID BLACKOUT ISLANDING",
-            "compound": "COMPOUND STRESS HAZARD_TRIG",
-        }
-        self.log("HAZARD_TRIG", labels.get(scenario or "", "CRISIS"), "critical")
+        self.crisis_tick = 0
+        self.state["status"] = "SURGE"
+        self.state["crisis"] = scenario
+        self.log("HAZARD_TRIG", "SURGE DETECTED — CLOUD COVER + EV SPIKE", "critical")
 
     def ingest_iot(self, asset_id: str, power_kw: float, soc_pct: Optional[float] = None) -> None:
         assets = self.state["assets"]
@@ -237,11 +238,48 @@ class GridEngine:
         net = load - solar + bess_kw - v2g_kw
         if islanded:
             net = max(0.0, net)
-        bus_kw = max(8.0, abs(net) if islanded else 120.0 + (net - 38.0) * 0.15 + noise(3.5))
 
-        # keep dashboard centered near 120 kW when nominal
-        if not self.crisis:
+        # Autonomous 3-phase crisis progression:
+        # Phase 1 (ticks 1-3): SURGE — acute load spike past 425 kW threshold
+        # Phase 2 (ticks 4-6): INTERVENTION — BESS & V2G mitigation, load drops to ~285 kW
+        # Phase 3 (ticks 7-12): STABILIZED — autonomous balance restored at ~124 kW
+        # Then gracefully transitions back to IDLE so crisis can be re-simulated anytime
+        if self.crisis:
+            self.crisis_tick += 1
+            if self.crisis_tick <= 3:
+                bus_kw = 442.0 + noise(4.0)
+                status = "SURGE"
+                flow_state = "OVERLOAD"
+                field = "HAZARD"
+                if self.crisis_tick == 1:
+                    self.log("HAZARD_TRIG", "SURGE DETECTED — CLOUD COVER + EV SPIKE", "critical")
+            elif self.crisis_tick <= 6:
+                bus_kw = 285.0 + noise(3.0)
+                status = "INTERVENTION"
+                flow_state = "MITIGATING_FLOW"
+                field = "INTERVENTION"
+                if self.crisis_tick == 4:
+                    self.log("INTERVENTION", "THROTTLING LOW-PRIORITY EVs: VAN-CHARLIE, VAN-DELTA", "warn")
+                    self.log("P2P_ROUTE", "P2P ROUTE ESTABLISHED — BESS-01 TO EV-DEPOT", "info")
+            elif self.crisis_tick <= 12:
+                bus_kw = 124.0 + noise(2.0)
+                status = "STABILIZED"
+                flow_state = "STABILIZED_FLOW"
+                field = "SAFE"
+                if self.crisis_tick == 7:
+                    self.log("STABILIZED", "GRID BALANCED AND STABILIZED // CAPACITY SAFE", "info")
+            else:
+                self.crisis = None
+                self.crisis_tick = 0
+                bus_kw = 120.0 + 6.0 * math.sin(t / 18.0) + noise(1.8)
+                status = "IDLE"
+                flow_state = "NOMINAL_FLOW"
+                field = "NOMINAL"
+        else:
             bus_kw = 120.0 + 6.0 * math.sin(t / 18.0) + noise(1.8)
+            status = "IDLE"
+            flow_state = "NOMINAL_FLOW"
+            field = "NOMINAL"
 
         freq = 50.0 - (bus_kw - 120.0) * 0.0024 + noise(0.01)
         if islanded:
@@ -251,19 +289,6 @@ class GridEngine:
 
         soc += (-bess_kw) / 850.0
         soc = max(8.0, min(100.0, soc))
-
-        if bus_kw > 425:
-            status = "CRITICAL"
-            flow_state = "OVERLOAD"
-            field = "HAZARD"
-        elif bus_kw > 280 or self.crisis:
-            status = "STRESSED"
-            flow_state = "STRESSED_FLOW"
-            field = "ELEVATED"
-        else:
-            status = "NOMINAL"
-            flow_state = "NOMINAL_FLOW"
-            field = "NOMINAL"
 
         efficiency = max(72.0, 96.4 * m["solar"] + noise(0.4))
         factory_pct = min(100.0, 68.0 * m["factory"] + noise(0.8))
