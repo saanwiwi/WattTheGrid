@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowUpRight, Zap, Sun, Battery, Car, AlertOctagon, Terminal, ChevronDown } from 'lucide-react';
 import { AreaChart, Area, LineChart, Line, ResponsiveContainer, YAxis } from 'recharts';
 import { ChromaticImageDemo } from './components/chromaticimage';
+import { BackgroundBeamsDemo } from './components/BackgroundBeamsDemo';
 
 const WEBSOCKET_MODE = false;
 const WS_URL = 'ws://localhost:8000/ws';
@@ -180,15 +181,15 @@ export default function App() {
         button, a { cursor: pointer !important; }
       `}</style>
 
-      <div className="min-h-screen bg-[#09070D] text-[#F7F7F2] font-sans selection:bg-[#FFEA00] selection:text-black flex flex-col brutalist-grid">
+      <div className="min-h-screen bg-[#06020c] text-[#F7F7F2] font-sans selection:bg-[#FFEA00] selection:text-black flex flex-col brutalist-grid">
 
         {/* TOP TICKER TAPE - ACID YELLOW */}
         <div className="border-b-2 border-black py-2 overflow-hidden flex whitespace-nowrap text-[11px] font-mono tracking-[0.2em] uppercase bg-[#FFEA00] text-black font-black sticky top-0 z-50">
           <div className="animate-marquee">
-            <span className="mx-4">/// WHAT THE GRID // AUTONOMOUS SYSTEM</span>
+            <span className="mx-4">/// WATT THE GRID // AUTONOMOUS SYSTEM</span>
             <span className="mx-4">/// SYSTEM NOMINAL</span>
             <span className="mx-4">/// LAT: 34.0522 N LNG: 118.2437 W</span>
-            <span className="mx-4">/// WHAT THE GRID // AUTONOMOUS SYSTEM</span>
+            <span className="mx-4">/// WATT THE GRID // AUTONOMOUS SYSTEM</span>
             <span className="mx-4">/// SYSTEM NOMINAL</span>
             <span className="mx-4">/// LAT: 34.0522 N LNG: 118.2437 W</span>
           </div>
@@ -213,13 +214,12 @@ export default function App() {
                 <div className="inline-block bg-[#1434FB] text-white font-mono text-xs px-4 py-1.5 mb-6 uppercase tracking-widest font-bold border border-white/25 shadow-lg">
                   Autonomous Microgrid Intelligence Engine
                 </div>
-                <h1 className="text-[clamp(4.5rem,10vw,12rem)] font-black leading-[0.8] tracking-tighter uppercase mb-8">
-                  WHAT<br/>THE<br/>
-                  <span className="text-[#FFEA00]">GRID</span>
+                <h1 className="text-[clamp(4.5rem,10vw,12rem)] font-bold leading-[0.8] tracking-tight mb-8">
+                  Watt<br/>The<br/>
+                  <span className="text-[#FFEA00] font-['Pacifico'] normal-case font-normal tracking-normal">
+                    Grid
+                  </span>
                 </h1>
-                <p className="font-mono text-sm tracking-widest text-white/80 max-w-2xl uppercase leading-relaxed">
-                  A brutalist digital twin modeling compound municipal energy stresses, autonomous EV load-shedding, and sub-second P2P routing architecture.
-                </p>
               </div>
             </div>
 
@@ -235,9 +235,18 @@ export default function App() {
         </div>
 
         {/* SECTION 2: CORE COMMAND CENTER */}
-        <section id="command-center" className="min-h-screen grid grid-cols-1 lg:grid-cols-12 border-b-2 border-white/25 bg-[#09070D] relative">
-          <div className="col-span-5 border-r border-white/20 flex flex-col justify-between bg-[#1434FB] text-white p-8 lg:p-12">
-            <div>
+        <section id="command-center" className="min-h-screen grid grid-cols-1 lg:grid-cols-12 border-b-2 border-white/25 bg-[#06020c] relative">
+          <div className="col-span-5 border-r border-white/20 flex flex-col justify-between bg-[#1434FB] text-white p-8 lg:p-12 relative overflow-hidden">
+            {/* Halftone Dot Matrix Texture Overlay */}
+            <div 
+              className="absolute inset-0 pointer-events-none opacity-20 mix-blend-overlay"
+              style={{
+                backgroundImage: 'radial-gradient(circle, #ffffff 1.5px, transparent 1.5px)',
+                backgroundSize: '16px 16px'
+              }}
+            />
+            
+            <div className="relative z-10">
               <div className="flex justify-between items-start mb-12">
                 <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
                   <Zap className="text-[#1434FB] w-6 h-6 animate-pulse" />
@@ -247,8 +256,11 @@ export default function App() {
                 </div>
               </div>
 
-              <h2 className="text-5xl font-black leading-none tracking-tighter uppercase mb-6">
-                COMMAND<br/><span className="text-[#FFEA00]">CONSOLE</span>
+              <h2 className="text-[clamp(5rem,9vw,9.5rem)] font-['Anton'] leading-[0.75] tracking-tighter uppercase mb-6 w-full">
+                COMMAND<br/>
+                <span className="text-[#FFEA00] font-['Pacifico'] normal-case font-normal tracking-normal text-[clamp(4rem,7.5vw,8rem)] inline-block mt-2">
+                  Console
+                </span>
               </h2>
 
               <p className="font-mono text-xs tracking-widest text-white/80 leading-relaxed uppercase max-w-[320px]">
@@ -256,16 +268,16 @@ export default function App() {
               </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 relative z-10">
               <button onClick={() => scrollToSection('diagnostics')} className="flex items-center gap-2 font-mono text-xs text-[#FFEA00] hover:text-white transition-colors">
                 <ChevronDown className="w-4 h-4 animate-bounce" /> [ VIEW TOPOLOGY DIAGNOSTICS ]
               </button>
-              <div className="grid grid-cols-2 border border-white/20 bg-[#09070D]">
+              <div className="grid grid-cols-2 border border-white/20 bg-[#06020c]">
                 <button onClick={triggerCrisis} className={`group flex flex-col justify-between p-6 h-32 border-r border-white/20 transition-colors ${crisisStep !== 'IDLE' ? 'bg-[#FF2A2A] text-white opacity-50 cursor-not-allowed' : 'bg-[#FF2A2A] text-white hover:bg-white hover:text-[#FF2A2A]'}`}>
                   <AlertOctagon className="w-6 h-6 mb-4 transition-transform group-hover:scale-110" />
                   <span className="font-mono text-[10px] tracking-widest uppercase font-black text-left">SIMULATE<br/>CRISIS</span>
                 </button>
-                <button onClick={reset} className="group flex flex-col justify-between p-6 h-32 transition-colors bg-[#09070D] text-white hover:bg-[#FFEA00] hover:text-black">
+                <button onClick={reset} className="group flex flex-col justify-between p-6 h-32 transition-colors bg-[#06020c] text-white hover:bg-[#FFEA00] hover:text-black">
                   <ArrowUpRight className="w-6 h-6 mb-4 transition-transform group-hover:rotate-45" />
                   <span className="font-mono text-[10px] tracking-widest uppercase font-black text-left">RESET<br/>BASELINE</span>
                 </button>
@@ -273,15 +285,18 @@ export default function App() {
             </div>
           </div>
 
-          <div className="col-span-7 flex flex-col justify-between">
-            <div className={`flex-grow flex flex-col justify-center relative p-8 lg:p-12 transition-colors duration-500 ${isCritical ? 'bg-[#FF2A2A]/20' : 'bg-transparent'}`}>
+          <div className="col-span-7 flex flex-col justify-between relative overflow-hidden">
+            {/* BACKGROUND BEAMS LAYER */}
+            <BackgroundBeamsDemo />
+
+            <div className={`flex-grow flex flex-col justify-center relative z-10 p-8 lg:p-12 transition-colors duration-500 ${isCritical ? 'bg-[#FF2A2A]/20' : 'bg-transparent'}`}>
               <div className="absolute top-6 left-6 font-mono text-xs tracking-widest text-white/50 uppercase flex gap-4">
                 <span>[ TX-400 MAIN BUS LOAD ]</span>
                 {WEBSOCKET_MODE && <span className="text-[#FFEA00] animate-pulse">WS CONNECTED</span>}
               </div>
 
               <div className="flex items-start justify-center mt-8">
-                <span className={`text-[clamp(8rem,14vw,16rem)] font-black tracking-tighter leading-none transition-all duration-300 ${isCritical ? 'text-[#FF2A2A]' : 'text-white'}`}>
+                <span className={`text-[clamp(8rem,14vw,16rem)] font-['Anton'] tracking-tighter leading-none transition-all duration-300 ${isCritical ? 'text-[#FF2A2A]' : 'text-white'}`}>
                   {load}
                 </span>
                 <span className="text-2xl font-mono text-[#1434FB] mt-8 ml-2 font-bold">kW</span>
@@ -309,22 +324,24 @@ export default function App() {
               </div>
             </div>
 
-            <div className="grid grid-cols-4 border-t border-white/20 h-32 bg-[#050408]">
+            <div className="grid grid-cols-4 border-t border-white/20 h-32 bg-[#06020c] relative z-10">
               {renderDataTable()}
             </div>
           </div>
         </section>
 
-        {/* SECTION 3: TOPOLOGY & EVENT LOG */}
-        <section id="diagnostics" className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-[#050408] p-6 lg:p-12 gap-6 items-start">
+        {/* SECTION 3: TOPOLOGY & EVENT LOG (VIBRANT GRADIENT MESH BACKGROUND) */}
+        <section id="diagnostics" className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-gradient-to-br from-[#06020c] via-[#0b0c24] to-[#04020a] p-6 lg:p-12 gap-6 items-start relative overflow-hidden">
+          {/* CRT Scanline Overlay Effect */}
+          <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] opacity-40 z-10" />
 
           {/* Topology Panel */}
-          <div className="lg:col-span-6 border border-white/25 flex flex-col bg-[#0B0B1A]" style={{ minHeight: '560px' }}>
-            <div className="flex justify-between font-mono text-xs tracking-widest text-white/60 uppercase font-bold p-6 border-b border-white/15">
+          <div className="lg:col-span-6 border-2 border-white/30 flex flex-col bg-[#0c0a1d]/90 backdrop-blur-md relative z-20 shadow-[0_0_40px_rgba(20,52,251,0.2)]" style={{ minHeight: '560px' }}>
+            <div className="flex justify-between font-mono text-xs tracking-widest text-white/80 uppercase font-bold p-6 border-b-2 border-white/20 bg-white/5">
               <span>[ TOPOLOGY_DIAGNOSTIC_MAP ]</span>
-              <span className="text-[#FFEA00]">TARGET: {activeNode}</span>
+              <span className="text-[#FFEA00] animate-pulse">TARGET: {activeNode}</span>
             </div>
-            <div className="flex-1 flex items-center justify-center p-6">
+            <div className="flex-1 flex items-center justify-center p-6 relative">
               <svg viewBox="0 0 400 340" width="100%" style={{ maxWidth: 420, display: 'block' }}>
                 <line x1="200" y1="0" x2="200" y2="340" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
                 <line x1="0" y1="170" x2="400" y2="170" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
@@ -334,32 +351,32 @@ export default function App() {
                 <line x1="200" y1="170" x2="110" y2="170" stroke="rgba(247,247,242,0.2)" strokeWidth="1.5" strokeDasharray="5,4" />
 
                 <g onClick={() => setActiveNode('SOLAR')} style={{ cursor: 'pointer' }}>
-                  <rect x="128" y="20" width="144" height="44" fill={activeNode === 'SOLAR' ? '#FFEA00' : '#09070D'} stroke="#FFEA00" strokeWidth={activeNode === 'SOLAR' ? 2.5 : 1.5} style={{ filter: 'drop-shadow(0 0 8px rgba(255,234,0,0.5))' }} />
+                  <rect x="128" y="20" width="144" height="44" fill={activeNode === 'SOLAR' ? '#FFEA00' : '#06020c'} stroke="#FFEA00" strokeWidth={activeNode === 'SOLAR' ? 2.5 : 1.5} style={{ filter: 'drop-shadow(0 0 8px rgba(255,234,0,0.5))' }} />
                   <text x="200" y="38" textAnchor="middle" fill={activeNode === 'SOLAR' ? '#000' : '#FFEA00'} fontFamily="monospace" fontSize="9" fontWeight="bold">SOLAR_GEN</text>
                   <text x="200" y="54" textAnchor="middle" fill={activeNode === 'SOLAR' ? '#000' : '#FFEA00'} fontFamily="monospace" fontSize="10" fontWeight="900">{telemetry.solar} kW</text>
                 </g>
 
                 <g onClick={() => setActiveNode('EV')} style={{ cursor: 'pointer' }}>
-                  <rect x="290" y="144" width="100" height="52" fill={activeNode === 'EV' ? '#1434FB' : '#09070D'} stroke="#1434FB" strokeWidth={activeNode === 'EV' ? 2.5 : 1.5} style={{ filter: 'drop-shadow(0 0 8px rgba(20,52,251,0.5))' }} />
+                  <rect x="290" y="144" width="100" height="52" fill={activeNode === 'EV' ? '#1434FB' : '#06020c'} stroke="#1434FB" strokeWidth={activeNode === 'EV' ? 2.5 : 1.5} style={{ filter: 'drop-shadow(0 0 8px rgba(20,52,251,0.5))' }} />
                   <text x="340" y="163" textAnchor="middle" fill={activeNode === 'EV' ? '#fff' : '#1434FB'} fontFamily="monospace" fontSize="8" fontWeight="bold">EV_FLEET</text>
                   <text x="340" y="181" textAnchor="middle" fill={activeNode === 'EV' ? '#fff' : '#1434FB'} fontFamily="monospace" fontSize="10" fontWeight="900">{telemetry.ev} kW</text>
                 </g>
 
                 <g onClick={() => setActiveNode('BESS')} style={{ cursor: 'pointer' }}>
-                  <rect x="128" y="278" width="144" height="44" fill={activeNode === 'BESS' ? '#FF2A2A' : '#09070D'} stroke="#FF2A2A" strokeWidth={activeNode === 'BESS' ? 2.5 : 1.5} style={{ filter: 'drop-shadow(0 0 8px rgba(255,42,42,0.5))' }} />
+                  <rect x="128" y="278" width="144" height="44" fill={activeNode === 'BESS' ? '#FF2A2A' : '#06020c'} stroke="#FF2A2A" strokeWidth={activeNode === 'BESS' ? 2.5 : 1.5} style={{ filter: 'drop-shadow(0 0 8px rgba(255,42,42,0.5))' }} />
                   <text x="200" y="296" textAnchor="middle" fill={activeNode === 'BESS' ? '#fff' : '#FF2A2A'} fontFamily="monospace" fontSize="9" fontWeight="bold">BESS_SOC</text>
                   <text x="200" y="312" textAnchor="middle" fill={activeNode === 'BESS' ? '#fff' : '#FF2A2A'} fontFamily="monospace" fontSize="10" fontWeight="900">{telemetry.bessSoc}%</text>
                 </g>
 
                 <g>
-                  <rect x="10" y="144" width="100" height="52" fill="#09070D" stroke="rgba(247,247,242,0.3)" strokeWidth="1.5" />
+                  <rect x="10" y="144" width="100" height="52" fill="#06020c" stroke="rgba(247,247,242,0.3)" strokeWidth="1.5" />
                   <text x="60" y="163" textAnchor="middle" fill="rgba(247,247,242,0.5)" fontFamily="monospace" fontSize="8" fontWeight="bold">FACTORY</text>
                   <text x="60" y="181" textAnchor="middle" fill="rgba(247,247,242,0.5)" fontFamily="monospace" fontSize="10" fontWeight="900">200 kW</text>
                 </g>
 
                 <g onClick={() => setActiveNode('GRID')} style={{ cursor: 'pointer' }}>
                   <rect x="150" y="143" width="100" height="54"
-                    fill={isCritical ? 'rgba(255,42,42,0.35)' : activeNode === 'GRID' ? '#FFEA00' : '#09070D'}
+                    fill={isCritical ? 'rgba(255,42,42,0.35)' : activeNode === 'GRID' ? '#FFEA00' : '#06020c'}
                     stroke={isCritical ? '#FF2A2A' : '#ffffff'}
                     strokeWidth={activeNode === 'GRID' || isCritical ? 3 : 1.5}
                     style={{ filter: isCritical ? 'drop-shadow(0 0 12px rgba(255,42,42,0.8))' : activeNode === 'GRID' ? 'drop-shadow(0 0 10px rgba(255,234,0,0.6))' : 'none' }}
@@ -370,38 +387,45 @@ export default function App() {
                 </g>
               </svg>
             </div>
-            <div className="font-mono text-[10px] text-white/40 uppercase px-6 pb-4">Click nodes to route diagnostics to the main data deck.</div>
+            <div className="font-mono text-[10px] text-white/40 uppercase px-6 pb-4 border-t border-white/10 pt-3">Click nodes to route diagnostics to the main data deck.</div>
           </div>
 
           {/* Event Log Panel */}
-          <div className="lg:col-span-6 border border-white/25 flex flex-col bg-[#0B0B1A]" style={{ minHeight: '560px' }}>
-            <div className="flex justify-between items-center p-6 border-b border-white/15">
-              <span className="font-mono text-xs tracking-widest text-white/50 uppercase font-bold">[ SYSTEM_LOG // EVENT_STREAM ]</span>
-              <Terminal className="w-5 h-5 text-[#FFEA00]" />
+          <div className="lg:col-span-6 border-2 border-white/30 flex flex-col bg-[#0c0a1d]/90 backdrop-blur-md relative z-20 shadow-[0_0_40px_rgba(20,52,251,0.2)]" style={{ minHeight: '560px' }}>
+            <div className="flex justify-between items-center p-6 border-b-2 border-white/20 bg-white/5">
+              <span className="font-mono text-xs tracking-widest text-white/70 uppercase font-bold">[ SYSTEM_LOG // EVENT_STREAM ]</span>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#FFEA00] animate-ping" />
+                <Terminal className="w-5 h-5 text-[#FFEA00]" />
+              </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-5 font-mono text-xs leading-loose uppercase font-bold bg-[#050408]">
+            <div className="flex-1 overflow-y-auto p-5 font-mono text-xs leading-loose uppercase font-bold bg-[#06020c]">
               <div className="flex flex-col gap-3">
-                <p className="text-white/40 flex gap-4"><span className="text-white/25 shrink-0">--:--:--</span><span>SYSTEM STANDBY — DAEMON ACTIVE</span></p>
-                <p className="text-white/30 flex gap-4"><span className="text-white/25 shrink-0">--:--:--</span><span>MONITORING TX-400 MAIN BUS — LOAD WITHIN SAFE BAND</span></p>
-                <p className="text-white/30 flex gap-4"><span className="text-white/25 shrink-0">--:--:--</span><span>SOLAR ARRAY NOMINAL — OUTPUT {telemetry.solar} kW</span></p>
-                <p className="text-white/30 flex gap-4"><span className="text-white/25 shrink-0">--:--:--</span><span>EV FLEET CONNECTED — DRAW {telemetry.ev} kW</span></p>
+                <p className="text-white/50 flex gap-4"><span className="text-white/30 shrink-0">--:--:--</span><span>SYSTEM STANDBY — DAEMON ACTIVE</span></p>
+                <p className="text-white/40 flex gap-4"><span className="text-white/30 shrink-0">--:--:--</span><span>MONITORING TX-400 MAIN BUS — LOAD WITHIN SAFE BAND</span></p>
+                <p className="text-white/40 flex gap-4"><span className="text-white/30 shrink-0">--:--:--</span><span>SOLAR ARRAY NOMINAL — OUTPUT {telemetry.solar} kW</span></p>
+                <p className="text-white/40 flex gap-4"><span className="text-white/30 shrink-0">--:--:--</span><span>EV FLEET CONNECTED — DRAW {telemetry.ev} kW</span></p>
                 {crisisStep !== 'IDLE' && (
-                  <p className="text-[#FF2A2A] flex gap-4"><span className="shrink-0">+0.00ms</span><span>SURGE DETECTED — CLOUD COVER + EV SPIKE</span></p>
+                  <p className="text-[#FF2A2A] flex gap-4 bg-[#FF2A2A]/10 p-1"><span className="shrink-0">+0.00ms</span><span>SURGE DETECTED — CLOUD COVER + EV SPIKE</span></p>
                 )}
                 {(crisisStep === 'INTERVENTION' || crisisStep === 'STABILIZED') && (
                   <>
-                    <p className="text-[#FFEA00] flex gap-4"><span className="shrink-0">+2.00ms</span><span>THROTTLING LOW-PRIORITY EVs: VAN-CHARLIE, VAN-DELTA</span></p>
-                    <p className="text-[#1434FB] flex gap-4"><span className="shrink-0">+2.05ms</span><span>P2P ROUTE ESTABLISHED — BESS-01 TO EV-DEPOT</span></p>
+                    <p className="text-[#FFEA00] flex gap-4 bg-[#FFEA00]/10 p-1"><span className="shrink-0">+2.00ms</span><span>THROTTLING LOW-PRIORITY EVs: VAN-CHARLIE, VAN-DELTA</span></p>
+                    <p className="text-[#1434FB] bg-[#1434FB]/20 text-white flex gap-4 p-1"><span className="shrink-0">+2.05ms</span><span>P2P ROUTE ESTABLISHED — BESS-01 TO EV-DEPOT</span></p>
                   </>
                 )}
                 {crisisStep === 'STABILIZED' && (
-                  <p className="text-white flex gap-4"><span className="shrink-0">+3.50ms</span><span>GRID BALANCED AND STABILIZED // CAPACITY SAFE</span></p>
+                  <p className="text-[#FFEA00] flex gap-4 p-1"><span className="shrink-0">+3.50ms</span><span>GRID BALANCED AND STABILIZED // CAPACITY SAFE</span></p>
                 )}
               </div>
             </div>
-            <div className="font-mono text-[10px] text-white/40 uppercase px-6 py-3 border-t border-white/10">Sub-second autonomous event tracking operational.</div>
+            <div className="font-mono text-[10px] text-white/40 uppercase px-6 py-3 border-t border-white/10 flex justify-between items-center">
+              <span>Sub-second autonomous event tracking operational.</span>
+              <span className="text-[#FFEA00] animate-pulse">&gt;_ READY</span>
+            </div>
           </div>
         </section>
+
       </div>
     </>
   );
